@@ -5,9 +5,8 @@ import Book from './Book'
 import escapeRegExp from 'escape-string-regexp'
 import sortBy from 'sort-by'
 import * as BooksAPI from './BooksAPI'
-
-
 import BookShelf from './BookShelf'
+import SearchBooks from './SearchBooks'
 
 
   // import * as BooksAPI from './BooksAPI'
@@ -18,13 +17,18 @@ import BookShelf from './BookShelf'
 
 
     state={
-        books:[],
-        query:''
+        books:{currentlyReading:[],wantToRead:[],read:[]},
     }
 
-    updateQuery = (query) => {
-  this.setState({ query: query.trim() })
-}
+
+    setShelf= function (books,response){
+
+      books.currentlyReading=response.filter((e)=>(e.shelf==="currentlyReading"));
+      books.wantToRead=response.filter((e)=>(e.shelf==="wantToRead"));
+      books.read=response.filter((e)=>(e.shelf==="read"));
+
+      return books
+    }
 
 clearQuery = () => {
   this.setState({ query: '' })
@@ -33,7 +37,7 @@ clearQuery = () => {
 
     componentDidMount() {
       BooksAPI.getAll().then((books)=>{
-        this.setState({books})
+        this.setState({books:this.setShelf({currentlyReading:[],wantToRead:[],read:[]},books)})
       })
     }
 
@@ -41,9 +45,10 @@ clearQuery = () => {
 
     changeShelf=(book,shelf)=>{
 
-        BooksAPI.update(book, shelf).then(()=>{
+        BooksAPI.update(book, shelf).then((response)=>{
+            console.log(response),
           BooksAPI.getAll().then((books)=>{
-            this.setState({books})
+            this.setState({books:this.setShelf({currentlyReading:[],wantToRead:[],read:[]},books)})
           })
         })
 
@@ -54,18 +59,10 @@ clearQuery = () => {
 
 
     render() {
-          const { books,query } = this.state
+          const { books } = this.state
 
-          let showingBooks
-if (query) {
-  const match = new RegExp(escapeRegExp(query), 'i')
-  showingBooks = books.filter((contact) => match.test(contact.title))
-} else {
-  showingBooks = books
-}
 
-          let booksList=showingBooks
-          showingBooks.sort(sortBy('title'))
+
 
 
       return (
@@ -76,36 +73,7 @@ if (query) {
             path="/search"
 
             render={()=>(
-              <div className="app">
-              <div className="search-books">
-                <div className="search-books-bar">
-                  <Link className="close-search" to="/">Close</Link>
-                  <div className="search-books-input-wrapper">
-                    {/*
-                      NOTES: The search from BooksAPI is limited to a particular set of search terms.
-                      You can find these search terms here:
-                      https://github.com/udacity/reactnd-project-myreads-starter/blob/master/SEARCH_TERMS.md
-
-                      However, remember that the BooksAPI.search method DOES search by title or author. So, don't worry if
-                      you don't find a specific author or title. Every search is limited by search terms.
-                    */}
-                    <input    value={query}  onChange={(event) => this.updateQuery(event.target.value)} type="text" placeholder="Search by title or author"/>
-
-                  </div>
-                </div>
-                <div className="search-books-results">
-                  <ol className="books-grid">
-                  {
-
-                showingBooks.map((book,key)=>(
-                    <li key={book.id} >
-                      <Book onShelfChange={this.changeShelf} shelfValue={book.shelf} bookData={book} />
-                    </li>
-                  ))}
-                  </ol>
-                </div>
-              </div>
-              </div>
+                <SearchBooks onShelfChangeHandler={this.changeShelf}  status={'Currently Reading'} shelfs={this.state.books}  />
               )
 
             }/>
@@ -121,9 +89,9 @@ if (query) {
                       <h1>MyReads</h1>
                     </div>
 
-                    <BookShelf onShelfChangeHandler={this.changeShelf}  status={'Currently Reading'} shelf={'currentlyReading'}  />
-                    <BookShelf onShelfChangeHandler={this.changeShelf}  status={'Want to Read'} shelf={'wantToRead'} />
-                    <BookShelf onShelfChangeHandler={this.changeShelf} status={'Read'} shelf={'read'} />
+                    <BookShelf onShelfChangeHandler={this.changeShelf}  title={'Currently Reading'} shelf={books.currentlyReading}  />
+                    <BookShelf onShelfChangeHandler={this.changeShelf}  title={'Want to Read'} shelf={books.wantToRead} />
+                    <BookShelf onShelfChangeHandler={this.changeShelf} title={'Read'} shelf={books.read} />
 
                     <div className="open-search">
                       <Link to="/search">Add a book</Link>

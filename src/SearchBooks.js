@@ -10,103 +10,135 @@ import * as BooksAPI from './BooksAPI'
 class SearchBooks extends Component {
   static propTypes = {
     onShelfChangeHandler:PropTypes.func.isRequired,
-    shelfs:ropTypes.object.isRequired,
+    shelfs:PropTypes.object,
   }
 
 
-state={
+  state={
     books:[],
     query:''
   }
 
 
+  extractIds=function(books){
+
+    let res={}
+
+    res.wantToRead=books.wantToRead.map((book)=>book.id)
+    res.currentlyReading=books.currentlyReading.map((book)=>book.id)
+    res.read=books.read.map((book)=>book.id)
+
+    return res;
+
+  }
+
+
+  setNewValue=function(book,newShelf){
+
+
+    const  newObj=Object.assign({},book);
+
+
+    newObj.shelf=newShelf;
+
+    return newObj;
+
+
+  }
+
+
+  findAndReplace = function (books,Ids,shelfType){
+    if(books!==undefined)
+    return books.map((book)=> Ids.find((id)=>id===book.id)===undefined?book:this.setNewValue(book,shelfType))
+    else {
+      return
+    }
+  }
+
+
+  updateShelfs=function(shelfArray,books){
+    books=this.findAndReplace(books,shelfArray.wantToRead,"wantToRead");
+    books=this.findAndReplace(books,shelfArray.read,"read");
+    books=this.findAndReplace(books,shelfArray.currentlyReading,"currentlyReading");
+
+    return books;
+
+  }
+
+
   updateQuery = (query) => {
 
+    this.setState({ query: query.trim() })
+    if(query===''){
+      this.setState({ books:[]})
+      return
+    }
+
+    BooksAPI.search( this.state.query, 20).then((books)=>{
+      books==!undefined||!(books.hasOwnProperty('error'))?this.setState({ books:this.updateShelfs(this.extractIds(this.props.shelfs),books)})
+      :this.setState({ books:[]})
+    }
+
+  ).catch(
+    error => {
+      console.log("error")
+    }
+  )
 
 
-    BooksAPI.search( this.state.query, 20).then((books)=>
-        this.setState({ books:books}),
-        this.setState({ query: query.trim() })
-        ,(error)=>
-            this.setState({ books:[]}),
 
 
-    )
+}
 
 
 
-  }
+render() {
 
-
-
-
-
-  render() {
-
-    const { onShelfChangeHandler } = this.props
-        const { query } = this.state
-let booksList=this.state.books
-if (booksList===undefined){
-booksList=[]
-
-}else{
-  if(booksList.error==="empty query"){
+  const { onShelfChangeHandler } = this.props
+  const { query } = this.state
+  let booksList=this.state.books
+  if (booksList===undefined){
     booksList=[]
+
   }else{
-    booksList=this.state.books
+    if(booksList.error==="empty query"){
+      booksList=[]
+    }
+    else{
+      booksList=this.state.books
+    }
   }
-}
 
-/*    let showingBooks
-if (query) {
-const match = new RegExp(escapeRegExp(query), 'i')
-showingBooks = books.filter((books) => match.test(books.title))
-} else {
-showingBooks = books
-}
-showingBooks = books
-    showingBooks.sort(sortBy('title'))
-*/
+  return (
 
-    return (
-
-      <div className="app">
+    <div className="app">
       <div className="search-books">
         <div className="search-books-bar">
           <Link className="close-search" to="/">Close</Link>
           <div className="search-books-input-wrapper">
-            {/*
-              NOTES: The search from BooksAPI is limited to a particular set of search terms.
-              You can find these search terms here:
-              https://github.com/udacity/reactnd-project-myreads-starter/blob/master/SEARCH_TERMS.md
 
-              However, remember that the BooksAPI.search method DOES search by title or author. So, don't worry if
-              you don't find a specific author or title. Every search is limited by search terms.
-            */}
-            <input    value={query}  onChange={(event) => this.updateQuery(event.target.value)} type="text" placeholder="Search by title or author"/>
+          <input    value={query}  onChange={(event) => this.updateQuery(event.target.value)} type="text" placeholder="Search by title or author"/>
 
           </div>
         </div>
-        <div className="search-books-results">
-          <ol className="books-grid">
+            <div className="search-books-results">
+              <ol className="books-grid">
 
-          {
-            booksList.map((book,key)=>(
-                <li key={book.id}>
-                    <Book onShelfChange={onShelfChangeHandler}  bookData={book} />
+              {
+                booksList.map((book,key)=>(
+                  <li key={book.id}>
+                  <Book onShelfChange={onShelfChangeHandler}  bookData={book} />
                   </li>
-            ))}
+                ))
+              }
 
-
-
-
-          </ol>
-        </div>
+              </ol>
+            </div>
       </div>
-      </div>
+    </div>
 
-    )
-  }
+  )
+}
 }
 
 export default SearchBooks
