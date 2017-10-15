@@ -34,16 +34,9 @@ class SearchBooks extends Component {
 
 
   setNewValue=function(book,newShelf){
-
-
     const  newObj=Object.assign({},book);
-
-
     newObj.shelf=newShelf;
-
     return newObj;
-
-
   }
 
 
@@ -60,9 +53,7 @@ class SearchBooks extends Component {
     books=this.findAndReplace(books,shelfArray.wantToRead,"wantToRead");
     books=this.findAndReplace(books,shelfArray.read,"read");
     books=this.findAndReplace(books,shelfArray.currentlyReading,"currentlyReading");
-
     return books;
-
   }
 
 
@@ -116,14 +107,11 @@ render() {
         <div className="search-books-bar">
           <Link className="close-search" to="/">Close</Link>
           <div className="search-books-input-wrapper">
-
-          <input    value={query}  onChange={(event) => this.updateQuery(event.target.value)} type="text" placeholder="Search by title or author"/>
-
+            <input    value={query}  onChange={(event) => this.updateQuery(event.target.value)} type="text" placeholder="Search by title or author"/>
           </div>
         </div>
-            <div className="search-books-results">
+          <div className="search-books-results">
               <ol className="books-grid">
-
               {
                 booksList.map((book,key)=>(
                   <li key={book.id}>
@@ -131,9 +119,8 @@ render() {
                   </li>
                 ))
               }
-
               </ol>
-            </div>
+          </div>
       </div>
     </div>
 

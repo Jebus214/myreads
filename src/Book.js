@@ -8,9 +8,7 @@ class Book extends Component {
     onShelfChange:PropTypes.func.isRequired,
   }
 
-  state = {
-    value:this.props.bookData.shelf
-  }
+
 
   handleChange=(book,event)=>(
     event.target.value!=='none'?this.props.onShelfChange(book,event.target.value):null,
@@ -23,36 +21,27 @@ class Book extends Component {
 
     return (
       <div className="book">
-
-      <div className="book-top">
-      <div className="book-cover" style={{ width: 128, height: 193, backgroundImage: 'url("'+bookData.imageLinks.smallThumbnail+'")' }}></div>
-      <div className="book-shelf-changer">
-      <select onChange={(e)=>this.handleChange(bookData,e)} value={this.state.value} >
-
-
-      <option  value="none" disabled>Move to...</option>
-      <option value="currentlyReading">{this.state.value==='currentlyReading'?'✓':''}Currently Reading</option>
-      <option value="wantToRead">{this.state.value==='wantToRead'?'✓':''}Want to Read</option>
-      <option value="read">{this.state.value==='read'?'✓':''} Read</option>
-      <option value="none">None</option>
-
-
-
-      </select>
+        <div className="book-top">
+          <div className="book-cover" style={{ width: 128, height: 193, backgroundImage: 'url("'+bookData.imageLinks.smallThumbnail+'")' }}></div>
+            <div className="book-shelf-changer">
+            <select onChange={(e)=>this.handleChange(bookData,e)} value={bookData.shelf} >
+              <option  value="none" disabled>Move to...</option>
+              <option value="currentlyReading">{bookData.shelf==='currentlyReading'?'✓':''}Currently Reading</option>
+              <option value="wantToRead">{bookData.shelf==='wantToRead'?'✓':''}Want to Read</option>
+              <option value="read">{bookData.shelf==='read'?'✓':''} Read</option>
+              <option value="none">None</option>
+            </select>
+          </div>
+        </div>
+        <div className="book-title">{bookData.title}</div>
+        <div className="book-authors">
+            {bookData.authors?bookData.authors.map((autor,key)=>
+              <p key={autor}>
+              {autor}
+              </p>
+            ):<p></p>}
+        </div>
       </div>
-      </div>
-      <div className="book-title">{bookData.title}</div>
-      <div className="book-authors">
-
-      {bookData.authors?bookData.authors.map((autor,key)=>
-        <p key={autor}>
-        {autor}
-        </p>
-      ):<p></p>
-    }
-
-    </div>
-    </div>
 
   )
 }
