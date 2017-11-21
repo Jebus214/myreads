@@ -72,12 +72,8 @@ class BooksApp extends React.Component {
   changeShelf=(book,shelf)=>{
     let updatedBook=book;
     BooksAPI.update(book, shelf).then((response)=>{
-
-      console.log(book);
-         let updatedBooks=response;
+    let updatedBooks=response;
     return this.setState((prevState) =>{
-           console.log(prevState);
-           console.log(updatedBooks);
            let callBackFunction=this.updateBook;
            let list=[... prevState.books.currentlyReading,...prevState.books.wantToRead,... prevState.books.read];
            list.filter((item)=>item.id===updatedBook.id).length>0?list:list.push(updatedBook);
