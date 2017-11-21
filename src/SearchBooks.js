@@ -65,8 +65,10 @@ class SearchBooks extends Component {
       return
     }
 
-    BooksAPI.search( this.state.query, 20).then((books)=>{
-      books==!undefined||!(books.hasOwnProperty('error'))?this.setState({ books:this.updateShelfs(this.extractIds(this.props.shelfs),books)})
+    BooksAPI.search( query, 20).then((books)=>{
+
+      books && !books.error?
+      this.setState({ books:this.updateShelfs(this.extractIds(this.props.shelfs),books)})
       :this.setState({ books:[]})
     }
 

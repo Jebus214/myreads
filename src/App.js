@@ -1,12 +1,12 @@
 import React, { Component } from 'react';
 import { Route } from 'react-router-dom'
-import { Link } from 'react-router-dom'
 import Book from './Book'
 import escapeRegExp from 'escape-string-regexp'
 import sortBy from 'sort-by'
 import * as BooksAPI from './BooksAPI'
 import BookShelf from './BookShelf'
 import SearchBooks from './SearchBooks'
+import MainPage from './MainPage'
 import './App.css'
 
 class BooksApp extends React.Component {
@@ -20,31 +20,70 @@ class BooksApp extends React.Component {
 
   setShelf= function (books,response){
 
-    books.currentlyReading=response.filter((e)=>(e.shelf==="currentlyReading"));
-    books.wantToRead=response.filter((e)=>(e.shelf==="wantToRead"));
-    books.read=response.filter((e)=>(e.shelf==="read"));
-
-    return books
+      books.currentlyReading=response.filter((e)=>(e.shelf==="currentlyReading"));
+      books.wantToRead=response.filter((e)=>(e.shelf==="wantToRead"));
+      books.read=response.filter((e)=>(e.shelf==="read"));
+  
+      return books
   }
 
-  clearQuery = () => {
-    this.setState({ query: '' })
-  }
+
+ updateBook=function (bookList,id,shelf){
+       let res=bookList.reduce((acum,book)=>{
+          if(book.id==id)
+            {book.shelf=shelf}
+        
+          acum.push(book);
+          return acum
+          },[]);
+        return res
+      }
+
+
+ updateBooks=function(bookList,updatedShelfs,updateBook){
+
+          let res;
+          updatedShelfs.currentlyReading.forEach(item=>{
+            res=updateBook(bookList,item,'currentlyReading');
+          });
+
+          updatedShelfs.wantToRead.forEach(item=>{
+            res=updateBook(bookList,item,'wantToRead');
+          });
+
+          updatedShelfs.read.forEach(item=>{
+            res=updateBook(bookList,item,'read');
+          });
+
+          return res
+        }
+
+
 
 
   componentDidMount() {
     BooksAPI.getAll().then((books)=>{
-      this.setState({books:this.setShelf({currentlyReading:[],wantToRead:[],read:[]},books)})
+      return this.setState({books:this.setShelf({currentlyReading:[],wantToRead:[],read:[]},books)});
     })
   }
 
 
 
   changeShelf=(book,shelf)=>{
+    let updatedBook=book;
     BooksAPI.update(book, shelf).then((response)=>{
-      BooksAPI.getAll().then((books)=>{
-        this.setState({books:this.setShelf({currentlyReading:[],wantToRead:[],read:[]},books)})
-      })
+
+      console.log(book);
+         let updatedBooks=response;
+    return this.setState((prevState) =>{
+           console.log(prevState);
+           console.log(updatedBooks);
+           let callBackFunction=this.updateBook;
+           let list=[... prevState.books.currentlyReading,...prevState.books.wantToRead,... prevState.books.read];
+           list.filter((item)=>item.id===updatedBook.id).length>0?list:list.push(updatedBook);
+           return {books:this.setShelf({currentlyReading:[],wantToRead:[],read:[]},this.updateBooks(list,updatedBooks,callBackFunction))}
+      }
+      )
     })
   }
 
@@ -63,24 +102,11 @@ class BooksApp extends React.Component {
       }/>
       <Route exact path="/"
         render={()=>(
-
-        <div className="app">
-          <div className="list-books">
-            <div className="list-books-title">
-              <h1>MyReads</h1>
-            </div>
-
-            <BookShelf onShelfChangeHandler={this.changeShelf}  title={'Currently Reading'} shelf={books.currentlyReading}  />
-            <BookShelf onShelfChangeHandler={this.changeShelf}  title={'Want to Read'} shelf={books.wantToRead} />
-            <BookShelf onShelfChangeHandler={this.changeShelf} title={'Read'} shelf={books.read} />
-
-            <div className="open-search">
-              <Link to="/search">Add a book</Link>
-            </div>
-          </div>
-        </div>
-      )}/>
+          <MainPage onShelfChangeHandler={this.changeShelf}   books={this.state.books}  />
+       )
+     }/>
   </div>
+
   )}
 }
 
